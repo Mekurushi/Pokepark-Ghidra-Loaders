@@ -13,14 +13,20 @@ import ghidra.app.util.importer.MessageLog;
 import ghidra.app.util.opinion.AbstractProgramWrapperLoader;
 import ghidra.app.util.opinion.LoadSpec;
 import ghidra.program.flatapi.FlatProgramAPI;
+import ghidra.program.model.address.Address;
 import ghidra.program.model.address.AddressOverflowException;
+import ghidra.program.model.data.ArrayDataType;
+import ghidra.program.model.data.DataTypeConflictHandler;
 import ghidra.program.model.data.Pointer32DataType;
+import ghidra.program.model.data.StructureDataType;
 import ghidra.program.model.lang.LanguageCompilerSpecPair;
 import ghidra.program.model.listing.Program;
 import ghidra.program.model.symbol.RefType;
+import ghidra.program.model.symbol.SourceType;
 import ghidra.util.exception.CancelledException;
 import ghidra.util.task.TaskMonitor;
 import rlb_data.structures.RLBInfo;
+import rlb_data.structures.ScriptListTableEntry;
 
 public class RLBLoader extends AbstractProgramWrapperLoader {
 
@@ -53,16 +59,41 @@ public class RLBLoader extends AbstractProgramWrapperLoader {
 		
 		try {
 			MemoryBlockUtils.createInitializedBlock(program, false, "DATA", api.toAddr(0), filebytes, 0, filebytes.getSize(), "", "", true, false, false, log);
+				
+			StructureDataType entryType = ScriptListTableEntry.create(
+					program.getDataTypeManager());
+				program.getDataTypeManager().addDataType(
+					entryType, DataTypeConflictHandler.REPLACE_HANDLER);
+
+				for (int i = 0; i < info.num_entries; ++i) {
+					Address addr = api.toAddr(info.entry_addresses[i]);
+					String name = info.entry_names[i];
+	 
+					api.createLabel(addr, name, true);
+	 
+					if (ScriptListTableEntry.TABLE_NAMES.contains(name)) {
+						int count = ScriptListTableEntry.countEntriesUntilZeroTerminated(reader, info.data_offset(), info.entry_addresses[i]);
+						ArrayDataType tableType =
+							new ArrayDataType(entryType, count, entryType.getLength());
+						api.createData(addr, tableType);
+						
+					}
+				}
 			
-			for(int i = 0; i < info.num_relocs; ++i) {
-				var data = api.createData(api.toAddr(info.pointer_locations[i]), Pointer32DataType.dataType);
-				api.createMemoryReference(data, api.toAddr(reader.readInt(info.data_offset() + info.pointer_locations[i])), RefType.DATA);
-			}
-			
-			for(int i = 0; i < info.num_entries; ++i) {
-				api.createLabel(api.toAddr(info.entry_addresses[i]), info.entry_names[i], true);
-			}
-			
+				for (int i = 0; i < info.num_relocs; ++i) {
+					Address relocAddr = api.toAddr(info.pointer_locations[i]);
+	 
+					if (program.getListing().getDefinedDataContaining(relocAddr) != null) {
+						continue;
+					}
+	 
+					var data = api.createData(relocAddr, Pointer32DataType.dataType);
+					api.createMemoryReference(data,
+						api.toAddr(reader.readInt(info.data_offset() + info.pointer_locations[i])),
+						RefType.DATA);
+				}
+
+
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
