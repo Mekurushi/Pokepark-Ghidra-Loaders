@@ -12,20 +12,20 @@ public class RLBInfo {
 	public int num_relocs;
 	public int num_entries;
 	public int num_other_entries;
-
+	
 	public long[] pointer_locations;
 	public final Set<Long> relocationSet;
 
 	public long[] entry_addresses;
 	public String[] entry_names;
-
+	
 	public RLBInfo(BinaryReader reader) throws IOException {
 		file_size = reader.readNextInt();
 		data_size = reader.readNextInt();
 		num_relocs = reader.readNextInt();
 		num_entries = reader.readNextInt();
 		num_other_entries = reader.readNextInt();
-
+		
 		pointer_locations = new long[num_relocs];
 		relocationSet = new HashSet<>();
 		reader.setPointerIndex(reloc_offset());
@@ -34,7 +34,7 @@ public class RLBInfo {
 			pointer_locations[i] = loc;
 			relocationSet.add(loc);
 		}
-
+		
 		entry_addresses = new long[num_entries];
 		entry_names = new String[num_entries];
 		for(int i = 0; i < num_entries; ++i) {
@@ -45,19 +45,19 @@ public class RLBInfo {
 			entry_addresses[i] = address;
 		}
 	}
-
+	
 	public long data_offset() {
 		return 0x20;
 	}
-
+	
 	public long reloc_offset() {
 		return data_offset() + data_size;
 	}
-
+	
 	public long entries_offset() {
 		return reloc_offset() + num_relocs*4;
 	}
-
+	
 	public long strings_offset() {
 		return entries_offset() + (num_entries + num_other_entries)*8;
 	}

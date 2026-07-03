@@ -33,11 +33,11 @@ public class RLBLoader extends AbstractProgramWrapperLoader {
 	@Override
 	public Collection<LoadSpec> findSupportedLoadSpecs(ByteProvider provider) throws IOException {
 		List<LoadSpec> loadSpecs = new ArrayList<>();
-
+		
 		if(new BinaryReader(provider, false).readInt(0) == provider.length()) {
 			loadSpecs.add(new LoadSpec(this,0,new LanguageCompilerSpecPair("DATA:BE:64:default", "pointer32"),false));
 		}
-
+		
 		return loadSpecs;
 	}
 
@@ -52,11 +52,11 @@ public class RLBLoader extends AbstractProgramWrapperLoader {
 		// TODO Auto-generated method stub
 		BinaryReader reader = new BinaryReader(provider,false);
 		FlatProgramAPI api = new FlatProgramAPI(program, monitor);
-
+		
 		RLBInfo info = new RLBInfo(reader);
-
+		
 		var filebytes = MemoryBlockUtils.createFileBytes(program, provider, info.data_offset(), info.data_size, monitor);
-
+		
 		try {
 			MemoryBlockUtils.createInitializedBlock(program, false, "DATA", api.toAddr(0), filebytes, 0, filebytes.getSize(), "", "", true, false, false, log);
 
