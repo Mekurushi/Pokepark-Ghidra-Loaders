@@ -2,6 +2,7 @@ package rlb_data.structures;
 
 import java.io.IOException;
 import java.util.Set;
+import java.util.function.LongPredicate;
 
 import ghidra.app.util.bin.BinaryReader;
 import ghidra.program.model.data.*;
@@ -45,21 +46,22 @@ public class ScriptListTableEntry {
 	 * starting at {@code tableAddr}, including the terminating entry. 
 	 * The terminating entry uses in target_script the index of the terminating entry of FsbFileListData
 	 */
-	public static int countEntriesUntilZeroTerminated(BinaryReader reader, long dataOffset, long tableAddr)
+	public static int countEntriesUntilZeroTerminated(BinaryReader reader, long dataOffset, long tableAddr, LongPredicate isRelocated)
 			throws IOException {
 
 		int count = 0;
 		long fileOffset = dataOffset + tableAddr;
 		long fileLength = reader.length();
 
-		while (fileOffset + 4 <= fileLength) {
-			int namePtr = reader.readInt(fileOffset);
-			count++;
-			if (namePtr == 0) {
-				break;
-			}
-			fileOffset += ScriptListTableEntry.SIZE;
-		}
+		while (fileOffset + SIZE <= fileLength) {
+	        long namePtrAddress = fileOffset - dataOffset;
+	        int namePtr = reader.readInt(fileOffset);
+	        count++;
+	        if (namePtr == 0 && !isRelocated.test(namePtrAddress)) {
+	            break;
+	        }
+	        fileOffset += SIZE;
+	    }
 
 		return count;
 	}
