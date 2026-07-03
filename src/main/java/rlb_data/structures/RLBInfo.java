@@ -29,7 +29,7 @@ public class RLBInfo {
 		pointer_locations = new long[num_relocs];
 		relocationSet = new HashSet<>();
 		reader.setPointerIndex(reloc_offset());
-		for (int i = 0; i < num_relocs; i++) {
+		for(int i = 0; i < num_relocs; i++) {
 			long loc = reader.readNextInt();
 			pointer_locations[i] = loc;
 			relocationSet.add(loc);
@@ -37,11 +37,11 @@ public class RLBInfo {
 
 		entry_addresses = new long[num_entries];
 		entry_names = new String[num_entries];
-		for (int i = 0; i < num_entries; ++i) {
+		for(int i = 0; i < num_entries; ++i) {
 			int address = reader.readNextInt();
 			int offset = reader.readNextInt();
 			long strings = strings_offset();
-			entry_names[i] = reader.readAsciiString(strings + offset);
+			entry_names[i] = reader.readAsciiString(strings+offset);
 			entry_addresses[i] = address;
 		}
 	}
@@ -55,10 +55,10 @@ public class RLBInfo {
 	}
 
 	public long entries_offset() {
-		return reloc_offset() + num_relocs * 4;
+		return reloc_offset() + num_relocs*4;
 	}
 
 	public long strings_offset() {
-		return entries_offset() + (num_entries + num_other_entries) * 8;
+		return entries_offset() + (num_entries + num_other_entries)*8;
 	}
 }

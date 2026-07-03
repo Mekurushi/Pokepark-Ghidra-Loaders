@@ -53,11 +53,11 @@ public class ScriptListTableEntry {
 		long fileOffset = dataOffset + tableAddr;
 		long fileLength = reader.length();
 
-		while (fileOffset + SIZE <= fileLength) {
+		while(fileOffset + SIZE <= fileLength) {
 	        long namePtrAddress = fileOffset - dataOffset;
 	        int namePtr = reader.readInt(fileOffset);
 	        count++;
-	        if (namePtr == 0 && !isRelocated.test(namePtrAddress)) {
+	        if(namePtr == 0 && !isRelocated.test(namePtrAddress)) {
 	            break;
 	        }
 	        fileOffset += SIZE;
