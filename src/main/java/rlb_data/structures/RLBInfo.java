@@ -1,6 +1,8 @@
 package rlb_data.structures;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 import ghidra.app.util.bin.BinaryReader;
 
@@ -12,7 +14,8 @@ public class RLBInfo {
 	public int num_other_entries;
 	
 	public long[] pointer_locations;
-	
+	public final Set<Long> relocationSet;
+
 	public long[] entry_addresses;
 	public String[] entry_names;
 	
@@ -24,9 +27,12 @@ public class RLBInfo {
 		num_other_entries = reader.readNextInt();
 		
 		pointer_locations = new long[num_relocs];
+		relocationSet = new HashSet<>();
 		reader.setPointerIndex(reloc_offset());
 		for(int i = 0; i < num_relocs; i++) {
-			pointer_locations[i] = reader.readNextInt();
+			long loc = reader.readNextInt();
+			pointer_locations[i] = loc;
+			relocationSet.add(loc);
 		}
 		
 		entry_addresses = new long[num_entries];
